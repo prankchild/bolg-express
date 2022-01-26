@@ -1,53 +1,42 @@
-const mysql = require('mysql')
 
-module.exports = {
-  config: ({
-    host: 'localhost',
-    post: 3306,
-    user: 'root',
-    password: '123456',
-    database: 'boluoblog',
-    charset: 'utf8mb4'
-  }),
-  // 连接数据库 使用mysql的连接池
-  sqlConnect: function (sql, sqlArr, callBack) {
-    const pool = mysql.createPool(this.config)
-    pool.getConnection((err, conn) => {
-      console.log('good')
+const mysql = require('mysql2')
+
+const config = {
+  host: 'localhost',
+  port: 3306,
+  user: 'root',
+  password: '123456',
+  database: 'boluoblog',
+  charset: 'utf8mb4',
+  connectionLimit: 10
+}
+
+const pool = mysql.createPool(config)
+
+const SySqlConnect = (sySql, sqlArr) => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, conn) {
+      console.log('123')
       if (err) {
-        console.error(err)
-        return false
+        reject(err)
+      } else {
+        conn.query(sySql, sqlArr, (err, data) => {
+          // conn.release()
+          if (err) {
+            reject(err)
+          } else {
+            resolve(data)
+          }
+        })
       }
-      // 数据库驱动回调
-      conn.query(sql, sqlArr, callBack)
-      // 释放连接
       conn.release()
     })
-  },
-  // promise回调
-  // promise 回调
-  SySqlConnect: function (sySql, sqlArr) {
-    return new Promise((resolve, reject) => {
-      const pool = mysql.createPool(this.config)
-      pool.getConnection(function (err, conn) {
-        console.log('123')
-        if (err) {
-          reject(err)
-        } else {
-          conn.query(sySql, sqlArr, (err, data) => {
-            // conn.release()
-            if (err) {
-              reject(err)
-            } else {
-              resolve(data)
-            }
-          })
-        }
-        conn.release()
-      })
-      // pool.releaseConnection(conn)
-    }).catch((err) => {
-      console.log(err)
-    })
-  }
+    // pool.releaseConnection(conn)
+  }).catch((err) => {
+    console.log(err)
+  })
+}
+
+module.exports = {
+  SySqlConnect
 }
